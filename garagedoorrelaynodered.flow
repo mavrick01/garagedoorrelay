@@ -1,0 +1,331 @@
+[
+    {
+        "id": "2693cfbf.95264",
+        "type": "tab",
+        "label": "SandPit",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "6d032c92.debc4c",
+        "type": "http in",
+        "z": "2693cfbf.95264",
+        "name": "",
+        "url": "/GarageDoorStatus",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 289,
+        "y": 87,
+        "wires": [
+            [
+                "95f94ff4.02a758"
+            ]
+        ]
+    },
+    {
+        "id": "2baf2efb.b10c92",
+        "type": "http response",
+        "z": "2693cfbf.95264",
+        "name": "",
+        "x": 777,
+        "y": 88,
+        "wires": []
+    },
+    {
+        "id": "95f94ff4.02a758",
+        "type": "function",
+        "z": "2693cfbf.95264",
+        "name": "Return GarageDoorStatus",
+        "func": "var GarageDoorStatus=flow.get('GarageDoorStatus');\nvar GarageDoorTarget=flow.get('GarageDoorTarget');\nvar p = GarageDoorStatus;\nif (GarageDoorTarget == 1 && GarageDoorStatus === 0) \n{\n    p=3;\n} else if (GarageDoorTarget === 0 && GarageDoorStatus == 1) {\n    p=2;\n} else if ((GarageDoorTarget == 1 && GarageDoorStatus === 2) || (GarageDoorTarget === 0 && GarageDoorStatus === 3))\n{\n    p=4;\n}\nflow.set('GarageDoorStatus',p);\nmsg.payload = p;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 550.5,
+        "y": 89,
+        "wires": [
+            [
+                "2baf2efb.b10c92",
+                "37c95db5.cd968a"
+            ]
+        ]
+    },
+    {
+        "id": "37c95db5.cd968a",
+        "type": "debug",
+        "z": "2693cfbf.95264",
+        "name": "HTTP Response",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 820,
+        "y": 150,
+        "wires": []
+    },
+    {
+        "id": "4a0d2951.55f6e",
+        "type": "mqtt in",
+        "z": "2693cfbf.95264",
+        "name": "",
+        "topic": "stat/sonoff/POWER",
+        "qos": "2",
+        "broker": "8aabc5a0.0f60c",
+        "x": 288.5,
+        "y": 189,
+        "wires": [
+            [
+                "8afaaef0.65aab8",
+                "807cffd8.ebda4"
+            ]
+        ]
+    },
+    {
+        "id": "8afaaef0.65aab8",
+        "type": "function",
+        "z": "2693cfbf.95264",
+        "name": "Return GarageDoorTarget",
+        "func": "var GarageDoorTarget=flow.get('GarageDoorTarget');\nvar GarageDoorStatus=flow.get('GarageDoorStatus');\nvar p = { \"name\":\"Garage\", \"characteristic\":\"CurrentDoorState\", \"value\":99, \"GS\": 0, \"GT\": 0, \"GS1\": 0, \"GT1\": 0, \"GS2\": 0, \"GS1GT1\": 0};\np.GS = GarageDoorStatus;\np.GT = GarageDoorTarget;\np.GS1 = GarageDoorStatus&1;\np.GT1 = GarageDoorTarget&1;\np.GS2 = GarageDoorStatus&2;\n    if (msg.payload == \"ON\") \n{\n    if (GarageDoorStatus >= 4) \n    {\n        GarageDoorStatus=GarageDoorTarget^3;\n        GarageDoorTarget=GarageDoorTarget^1; \n        p.value= GarageDoorTarget;\n //       p.value=30;\n    } else if (p.GS1 == p.GT1 && p.GS2 == 2)\n    {\n        GarageDoorStatus=4;\n        p.characteristic = \"TargetDoorState\";\n        p.value= GarageDoorTarget;\n//        p.value=10;\n    } else\n    {\n      GarageDoorTarget=GarageDoorTarget^1; \n      p.value=GarageDoorTarget;\n//        p.value=20;    \n    }\nflow.set('GarageDoorTarget',GarageDoorTarget);\nflow.set('GarageDoorStatus',GarageDoorStatus);\nmsg.payload=p;\nreturn msg;\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 544,
+        "y": 187,
+        "wires": [
+            [
+                "7c4cde98.eb3dd"
+            ]
+        ]
+    },
+    {
+        "id": "807cffd8.ebda4",
+        "type": "debug",
+        "z": "2693cfbf.95264",
+        "name": "SONOFF POWER",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 520,
+        "y": 250,
+        "wires": []
+    },
+    {
+        "id": "71cf5560.1300dc",
+        "type": "mqtt in",
+        "z": "2693cfbf.95264",
+        "name": "",
+        "topic": "cmnd/BUTTONPRESS/POWER3",
+        "qos": "2",
+        "broker": "8aabc5a0.0f60c",
+        "x": 342,
+        "y": 375,
+        "wires": [
+            [
+                "8be6501.319213",
+                "5ed4c934.3ad118"
+            ]
+        ]
+    },
+    {
+        "id": "8be6501.319213",
+        "type": "function",
+        "z": "2693cfbf.95264",
+        "name": "Return GarageDoorStatus",
+        "func": "var GarageDoorStatus=flow.get('GarageDoorStatus') || 1;\nif (msg.payload == \"ON\") \n{\n   GarageDoorStatus=0;\n} else {\n    GarageDoorStatus=1;\n}\nflow.set('GarageDoorStatus',GarageDoorStatus);\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 643,
+        "y": 378,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5ed4c934.3ad118",
+        "type": "debug",
+        "z": "2693cfbf.95264",
+        "name": "BUTTONPRESS POWER3 ",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 667,
+        "y": 450,
+        "wires": []
+    },
+    {
+        "id": "7c4cde98.eb3dd",
+        "type": "debug",
+        "z": "2693cfbf.95264",
+        "name": "Door State",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 832,
+        "y": 222,
+        "wires": []
+    },
+    {
+        "id": "c7ec1386.8fdb6",
+        "type": "comment",
+        "z": "2693cfbf.95264",
+        "name": "SONOFF SETUP",
+        "info": "Backlog \nRule1 on switch3#state do publish cmnd/BUTTONPRESS/POWER %value% endon;\nRule1 1;\nSwitchTopic BUTTONPRESS;\nSwitchMode3 1;\nSwitchMode2 1;\nPulseTime1 10;\nSwitchDebounce 1000;\nSetOption1 1;\nSetOption53 1;\nGPIO12 84;\nGPIO13 21; \nGPIO14 83;\nmqtthost 192.168.x.x; \nmqttuser user; \nmqttpassword password;",
+        "x": 97.5,
+        "y": 21,
+        "wires": []
+    },
+    {
+        "id": "ff1b06b3.1029f",
+        "type": "mqtt in",
+        "z": "2693cfbf.95264",
+        "name": "",
+        "topic": "#",
+        "qos": "2",
+        "broker": "8aabc5a0.0f60c",
+        "x": 278,
+        "y": 703,
+        "wires": [
+            [
+                "d28f746c.c2844"
+            ]
+        ]
+    },
+    {
+        "id": "d28f746c.c2844",
+        "type": "debug",
+        "z": "2693cfbf.95264",
+        "name": "ALL MQTT",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 581,
+        "y": 704,
+        "wires": []
+    },
+    {
+        "id": "4b19543f.902944",
+        "type": "mqtt in",
+        "z": "2693cfbf.95264",
+        "name": "",
+        "topic": "cmnd/BUTTONPRESS/POWER2",
+        "qos": "2",
+        "broker": "8aabc5a0.0f60c",
+        "x": 356,
+        "y": 502,
+        "wires": [
+            [
+                "3f7d5320.3997c4",
+                "d408c3ed.6d767"
+            ]
+        ]
+    },
+    {
+        "id": "3f7d5320.3997c4",
+        "type": "function",
+        "z": "2693cfbf.95264",
+        "name": "Return GarageDoorStatus",
+        "func": "var GarageDoorStatus=flow.get('GarageDoorStatus') || 1;\nif (msg.payload == \"ON\") \n{\n   GarageDoorStatus=1;\n} else {\n    GarageDoorStatus=2;\n}\nflow.set('GarageDoorStatus',GarageDoorStatus);\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 657,
+        "y": 505,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d408c3ed.6d767",
+        "type": "debug",
+        "z": "2693cfbf.95264",
+        "name": "BUTTONPRESS POWER2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 681,
+        "y": 577,
+        "wires": []
+    },
+    {
+        "id": "e8e69d7.6ef7de",
+        "type": "comment",
+        "z": "2693cfbf.95264",
+        "name": "Debug All Incoming MQTT",
+        "info": "",
+        "x": 179.5,
+        "y": 647,
+        "wires": []
+    },
+    {
+        "id": "b76f5785.3745f8",
+        "type": "comment",
+        "z": "2693cfbf.95264",
+        "name": "Closed LED Triggers",
+        "info": "",
+        "x": 118,
+        "y": 466,
+        "wires": []
+    },
+    {
+        "id": "e6e37e33.c47218",
+        "type": "comment",
+        "z": "2693cfbf.95264",
+        "name": "Open  LED Triggers",
+        "info": "",
+        "x": 117,
+        "y": 343,
+        "wires": []
+    },
+    {
+        "id": "2b0dd026.4af138",
+        "type": "comment",
+        "z": "2693cfbf.95264",
+        "name": "Open/Close Script Triggers Relay",
+        "info": "",
+        "x": 158,
+        "y": 155,
+        "wires": []
+    },
+    {
+        "id": "54ae94cf.9bc97c",
+        "type": "comment",
+        "z": "2693cfbf.95264",
+        "name": "Status Script Response",
+        "info": "",
+        "x": 115,
+        "y": 56,
+        "wires": []
+    },
+    {
+        "id": "8aabc5a0.0f60c",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "",
+        "broker": "192.168.x.x",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeRetain": "false",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": ""
+    }
+]
