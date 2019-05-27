@@ -1,8 +1,17 @@
 # garagedoorrelay
-Setup for the homebridge-garagedoor-command using Node-Red and Tasmota/Wemos.
+Controlling a GarageDoor via homebridge-garagedoor-command or homebridge-mqtt using Node-Red and Tasmota/Wemos inside of homebridge.
 
-The garage door uses an Open/Stop/Close Circuit, so hence the need for the Pulse Timer
-It does also have LED's to show open and close and with the help of some Voltage dividers I can take them down to 3V to read when the door is Open or Close
+garagedoorhomebridgemqttnodered.flow is if you use homebridge-mqtt
+the scriptfiles and garagedoorrelaynodered.flow is if you use homebridge-garagedoor-command
 
-I have added a STOPPED status response, although do need to look at homebridge-garagedoor-command to see how to add this, as I dont think it supports that status today.
+My garage door uses an Open/Stop/Close Circuit, so I setup a Pulse Timer on the Sonoff.
+
+It also has LED's to show open and close and with the help of some Voltage dividers (taking to it v3) I can monitor these LEDs to see when the door is Open or Close.
+
+I have added a STOPPED status response, although do need to look at homebridge-garagedoor-command to see how to add this, as I dont think it supports that status today. homebridge-mqtt supported stopped, so I think that is the better way to go.
+
+For the homebridge-mqtt,  I created the garagedoor node using the example in https://github.com/cflurin/homebridge-mqtt/wiki/garageport
+
+Note: I've not changed the node name from SONOFF, in the future I may setup some global/flow based variable, but for now be aware you need to change the names of the node as you see fit.
+
 
