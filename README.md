@@ -12,6 +12,6 @@ I have added a STOPPED status response, although do need to look at homebridge-g
 
 For the homebridge-mqtt,  I created the garagedoor node using the example in https://github.com/cflurin/homebridge-mqtt/wiki/garageport
 
-Note: I've not changed the node name from SONOFF, in the future I may setup some global/flow based variable, but for now be aware you need to change the names of the node as you see fit.
+Note: I've named the node GarageDoor and send the LED messages on GarageLED. 
 
 
