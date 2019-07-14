@@ -1,0 +1,745 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf500
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww20940\viewh15740\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 [\
+    \{\
+        "id": "187c8f88.3b5bc",\
+        "type": "tab",\
+        "label": "GarageDoor2",\
+        "disabled": false,\
+        "info": ""\
+    \},\
+    \{\
+        "id": "21048167.d3d22e",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Current GDoor State",\
+        "topic": "",\
+        "payload": "\{\\"name\\" : \\"GDoor\\"\} ",\
+        "payloadType": "json",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": "",\
+        "x": 153.5,\
+        "y": 143,\
+        "wires": [\
+            [\
+                "ed241a63.942d08"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "fc61476c.cf45f8",\
+        "type": "debug",\
+        "z": "187c8f88.3b5bc",\
+        "name": "GDoorState",\
+        "active": false,\
+        "tosidebar": true,\
+        "console": false,\
+        "tostatus": false,\
+        "complete": "payload",\
+        "x": 395,\
+        "y": 108,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "69531969.0410b8",\
+        "type": "mqtt in",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "homebridge/from/response",\
+        "qos": "2",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 143,\
+        "y": 46,\
+        "wires": [\
+            [\
+                "fc61476c.cf45f8",\
+                "5c494ca0.23be04"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "4c385b9f.343c74",\
+        "type": "mqtt out",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "homebridge/to/remove",\
+        "qos": "",\
+        "retain": "",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 327,\
+        "y": 756,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "20d7ec54.0f42a4",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "GDoor Remove",\
+        "topic": "",\
+        "payload": "\{\\"name\\":\\"GDoor\\"\}",\
+        "payloadType": "json",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": "",\
+        "x": 117,\
+        "y": 756,\
+        "wires": [\
+            [\
+                "4c385b9f.343c74"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "abc2278e.af8a48",\
+        "type": "mqtt out",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "homebridge/to/add",\
+        "qos": "",\
+        "retain": "",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 314,\
+        "y": 708,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "de8abeab.5fd6e",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "GDoor Add",\
+        "topic": "",\
+        "payload": "\{\\"name\\":\\"GDoor\\",\\"service\\":\\"GarageDoorOpener\\"\}",\
+        "payloadType": "json",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": "",\
+        "x": 109,\
+        "y": 722,\
+        "wires": [\
+            [\
+                "abc2278e.af8a48"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "22f07ab.5a1d386",\
+        "type": "function",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Door Open Status",\
+        "func": "// Get the flow Status that was discovered in the Update Status\\nvar doorState = flow.get('doorState');\\nconst doorOpen = 0;\\nconst doorClosed = 1;\\nconst doorOpening = 2;\\nconst doorClosing = 3;\\nconst doorStopped = 4;\\n\\nvar topic=msg.topic;\\nvar msg1 = msg;\\n// if the DoorClose LED is ON, the set the CurrentDoorState & TargetDoorState Closed\\nif (topic == \\"cmnd/GDoorLED/POWER2\\" && msg.payload == 1)\\n\{\\n    doorState.CurrentDoorState = doorClosed;\\n    doorState.TargetDoorState = doorClosed;\\n\\n// if the DoorClose LED is OFF, the set the CurrentDoorState to Opening & \\n// TargetDoorState to Open. It also returns the second msg to default the \\n// CurrentDoorState Open after a timer. This is not necessary if the DoorOpen\\n// LED works (mine does not)\\n\} else if (topic == \\"cmnd/GDoorLED/POWER2\\" && msg.payload === 0)\\n\{\\n    doorState.TargetDoorState = doorOpen;\\n    doorState.CurrentDoorState = doorOpening;\\n    msg1.payload = doorState;\\n    return [msg1, msg1];      \\n// If the DoorOpen LED is ON, set the CurrentDoorState & TargetDoorState to doorOpen\\n\} else if (topic == \\"cmnd/GDoorLED/POWER3\\" && msg.payload == 1)\\n\{\\n    doorState.TargetDoorState = doorOpen;\\n    doorState.CurrentDoorState = doorOpen;\\n\} \\nmsg1.payload = doorState;\\n// If I've not returned a message send the doorState\\nreturn msg1\\n\\n",\
+        "outputs": 2,\
+        "noerr": 0,\
+        "x": 503,\
+        "y": 576,\
+        "wires": [\
+            [\
+                "ef53373c.0e5138",\
+                "84fc10b6.d647b",\
+                "3518a4ef.1882cc"\
+            ],\
+            [\
+                "63ce8b3b.f236d4"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "87e7d0d4.e5731",\
+        "type": "mqtt in",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoorLED/POWER2",\
+        "qos": "2",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 156,\
+        "y": 450,\
+        "wires": [\
+            [\
+                "8aef2f0a.6f668"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "5c494ca0.23be04",\
+        "type": "function",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Update GDoor Status",\
+        "func": "// Default the door State. I don't need to read the context as I will \\n// always check the status before making a decision\\nvar doorState = \{\\n    \\"CurrentDoorState\\" : 1,\\n    \\"TargetDoorState\\" : 1,\\n    \\"ObstructionDetected\\" : true\\n\};\\nvar msg1 = \{ payload:0, delay: 0 \};\\n\\n//parse the payload\\np = JSON.parse(msg.payload); \\n//update the array with the HomeKit characteristics\\ndoorState = p.GDoor.characteristics.GDoor;\\nmsg1.payload = doorState;\\n\\n//set the flow context\\nflow.set('doorState',doorState);\\n\\nreturn msg1;    \\n\\n\\n\\n",\
+        "outputs": 1,\
+        "noerr": 0,\
+        "x": 424,\
+        "y": 73,\
+        "wires": [\
+            [\
+                "8b9222d9.93ead"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "8b9222d9.93ead",\
+        "type": "debug",\
+        "z": "187c8f88.3b5bc",\
+        "name": "GDoorObjectState",\
+        "active": true,\
+        "tosidebar": true,\
+        "console": false,\
+        "tostatus": false,\
+        "complete": "payload",\
+        "x": 632,\
+        "y": 111,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "ef53373c.0e5138",\
+        "type": "debug",\
+        "z": "187c8f88.3b5bc",\
+        "name": "DoorState",\
+        "active": false,\
+        "tosidebar": true,\
+        "console": false,\
+        "tostatus": false,\
+        "complete": "true",\
+        "x": 813,\
+        "y": 563,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "8aef2f0a.6f668",\
+        "type": "function",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Update Status",\
+        "func": "// This Triggers the HomeKit Status Check, used for All Action Decisions\\nvar msg1 = \{ \\"payload\\":'\{\\"name\\" : \\"GDoor\\"\}', \\"delay\\": 0 \};\\n\\nreturn [msg1, msg];  \\n\\n\\n",\
+        "outputs": 2,\
+        "noerr": 0,\
+        "x": 418,\
+        "y": 467,\
+        "wires": [\
+            [\
+                "ed241a63.942d08"\
+            ],\
+            [\
+                "635fcb9f.f6f604"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "32008899.f03ec8",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoorLED/POWER2",\
+        "payload": "1",\
+        "payloadType": "num",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": 0.1,\
+        "x": 154,\
+        "y": 407,\
+        "wires": [\
+            [\
+                "8aef2f0a.6f668"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "213b11cf.58fb0e",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoorLED/POWER2",\
+        "payload": "0",\
+        "payloadType": "num",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": 0.1,\
+        "x": 158,\
+        "y": 496,\
+        "wires": [\
+            [\
+                "8aef2f0a.6f668"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "791a4c3a.20a0f4",\
+        "type": "mqtt in",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoorLED/POWER3",\
+        "qos": "2",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 160,\
+        "y": 605,\
+        "wires": [\
+            [\
+                "8aef2f0a.6f668"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "e774858e.fb36d8",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoorLED/POWER3",\
+        "payload": "1",\
+        "payloadType": "num",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": 0.1,\
+        "x": 160,\
+        "y": 566,\
+        "wires": [\
+            [\
+                "8aef2f0a.6f668"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "af1fb063.334e",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoorLED/POWER3",\
+        "payload": "0",\
+        "payloadType": "num",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": 0.1,\
+        "x": 161,\
+        "y": 651,\
+        "wires": [\
+            [\
+                "8aef2f0a.6f668"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "635fcb9f.f6f604",\
+        "type": "delay",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "pauseType": "delay",\
+        "timeout": "300",\
+        "timeoutUnits": "milliseconds",\
+        "rate": "1",\
+        "nbRateUnits": "1",\
+        "rateUnits": "second",\
+        "randomFirst": "1",\
+        "randomLast": "5",\
+        "randomUnits": "seconds",\
+        "drop": false,\
+        "x": 461.5,\
+        "y": 518,\
+        "wires": [\
+            [\
+                "22f07ab.5a1d386"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "84fc10b6.d647b",\
+        "type": "template",\
+        "z": "187c8f88.3b5bc",\
+        "name": "CurrentDoorState in Payload",\
+        "field": "payload",\
+        "fieldType": "msg",\
+        "format": "handlebars",\
+        "syntax": "mustache",\
+        "template": "\{\\n    \\"name\\":\\"GDoor\\",\\n    \\"characteristic\\":\\"CurrentDoorState\\",\\n    \\"value\\": \{\{payload.CurrentDoorState\}\}\\n    \}",\
+        "output": "str",\
+        "x": 840.5,\
+        "y": 475,\
+        "wires": [\
+            [\
+                "e3772349.8e906",\
+                "afd4ac8c.8eace"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "e3772349.8e906",\
+        "type": "debug",\
+        "z": "187c8f88.3b5bc",\
+        "name": "CurrentDoorStatus",\
+        "active": true,\
+        "tosidebar": true,\
+        "console": false,\
+        "tostatus": false,\
+        "complete": "payload",\
+        "x": 1085,\
+        "y": 441,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "63ce8b3b.f236d4",\
+        "type": "delay",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "pauseType": "delay",\
+        "timeout": "17",\
+        "timeoutUnits": "seconds",\
+        "rate": "1",\
+        "nbRateUnits": "1",\
+        "rateUnits": "second",\
+        "randomFirst": "1",\
+        "randomLast": "5",\
+        "randomUnits": "seconds",\
+        "drop": false,\
+        "x": 532,\
+        "y": 621,\
+        "wires": [\
+            [\
+                "4dc1bb30.d4c364"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "afd4ac8c.8eace",\
+        "type": "mqtt out",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "homebridge/to/set",\
+        "qos": "",\
+        "retain": "",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 1084,\
+        "y": 495,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "4dc1bb30.d4c364",\
+        "type": "function",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Send Door Open",\
+        "func": "// Get the current Default Door State, set in the update\\nvar doorState = flow.get('doorState');\\nconst doorOpen = 0;\\nconst doorClosed = 1;\\nconst doorOpening = 2;\\nconst doorClosing = 3;\\nconst doorStopped = 4;\\n\\n// Set CurrentDoorState & TargetDoorState to doorOpen\\ndoorState.CurrentDoorState = doorOpen;\\ndoorState.TargetDoorState = doorOpen;\\nmsg.payload = doorState;\\nreturn msg;\\n\\n",\
+        "outputs": 1,\
+        "noerr": 0,\
+        "x": 528,\
+        "y": 677,\
+        "wires": [\
+            [\
+                "84fc10b6.d647b",\
+                "3518a4ef.1882cc"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "d1a0a3de.6f2e4",\
+        "type": "mqtt in",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "stat/GDoor/POWER",\
+        "qos": "2",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 160,\
+        "y": 254,\
+        "wires": [\
+            [\
+                "7218ee94.18485"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "4ca2363a.dbdc58",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoor/power",\
+        "payload": "ON",\
+        "payloadType": "str",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": 0.1,\
+        "x": 150,\
+        "y": 218,\
+        "wires": [\
+            [\
+                "7218ee94.18485"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "315c3ff4.b319d",\
+        "type": "inject",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "cmnd/GDoor/power",\
+        "payload": "OFF",\
+        "payloadType": "str",\
+        "repeat": "",\
+        "crontab": "",\
+        "once": false,\
+        "onceDelay": 0.1,\
+        "x": 145,\
+        "y": 301,\
+        "wires": [\
+            [\
+                "7218ee94.18485"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "86594b54.158678",\
+        "type": "function",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Return GarageDoorTarget",\
+        "func": "// Get the flow Status that was discovered in the Update Status\\nvar doorState=flow.get('doorState');\\n// It is not necessary to set the default, as the status would always be there\\n// (I hope, unless MQTT does not respond in time)\\n//var doorState = flow.get('doorState') || \{\\n//    \\"CurrentDoorState\\" : 1,\\n//    \\"TargetDoorState\\" : 1,\\n//    \\"ObstructionDetected\\" : true\\n//\};\\n\\nconst doorOpen = 0;\\nconst doorClosed = 1;\\nconst doorOpening = 2;\\nconst doorClosing = 3;\\nconst doorStopped = 4;\\n\\n// var msg1 = \{ \\"payload\\" : \\"\\"\}; \\n\\n// If the Switch is toggled\\nif (msg.payload == \\"ON\\") \\n\{\\n// If the currentDoorStatus is stopped, switch TargetDoorState direction & \\n// set CurrentDoorState to the 'ing' of the new TargetDoorState\\nif (doorState.CurrentDoorState >= doorStopped) \\n    \{\\n        doorState.TargetDoorState=doorState.TargetDoorState^1; // Toggle the TargetDoorState\\n        doorState.CurrentDoorState=doorState.TargetDoorState|2; // Turn on the 'ing' of the new TargetDoorState\\n//        msg1.payload = \\"CurrentDoorState = 4\\"\\n// If the currentDoorStatus is an 'ing', set the status to stopped & \\n    \} else if (doorState.CurrentDoorState >= doorOpening)\\n    \{\\n        doorState.CurrentDoorState=4;\\n//        msg1.payload = \\"CurrentDoorState is Opening/Closing\\"\\n// else we are switching state\\n    \} else\\n    \{\\n//      msg1.payload = \\"Door is\\";\\n      doorState.TargetDoorState=doorState.TargetDoorState^1; // Toggle the TargetDoorState\\n      doorState.CurrentDoorState=doorState.TargetDoorState|2; // Turn on the 'ing' of the new TargetDoorState\\n    \}\\nmsg.payload = doorState;\\n\\n return msg;\\n// return [msgTarget,msgCurrent,msg];\\n\}",\
+        "outputs": 1,\
+        "noerr": 0,\
+        "x": 505,\
+        "y": 404,\
+        "wires": [\
+            [\
+                "84fc10b6.d647b",\
+                "3518a4ef.1882cc"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "7218ee94.18485",\
+        "type": "function",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Update Status",\
+        "func": "// This Triggers the HomeKit Status Check, used for All Action Decisions\\nvar msg1 = \{ \\"payload\\":'\{\\"name\\" : \\"GDoor\\"\}', \\"delay\\": 0 \};\\n\\nreturn [msg1, msg];  \\n\\n\\n",\
+        "outputs": 2,\
+        "noerr": 0,\
+        "x": 389,\
+        "y": 253,\
+        "wires": [\
+            [\
+                "ed241a63.942d08"\
+            ],\
+            [\
+                "cc5b651f.387768"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "cc5b651f.387768",\
+        "type": "delay",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "pauseType": "delay",\
+        "timeout": "300",\
+        "timeoutUnits": "milliseconds",\
+        "rate": "1",\
+        "nbRateUnits": "1",\
+        "rateUnits": "second",\
+        "randomFirst": "1",\
+        "randomLast": "5",\
+        "randomUnits": "seconds",\
+        "drop": false,\
+        "x": 437,\
+        "y": 344,\
+        "wires": [\
+            [\
+                "86594b54.158678"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "3518a4ef.1882cc",\
+        "type": "template",\
+        "z": "187c8f88.3b5bc",\
+        "name": "TargetDoorState in Payload",\
+        "field": "payload",\
+        "fieldType": "msg",\
+        "format": "handlebars",\
+        "syntax": "mustache",\
+        "template": "\{\\n    \\"name\\":\\"GDoor\\",\\n    \\"characteristic\\":\\"TargetDoorState\\",\\n    \\"value\\": \{\{payload.TargetDoorState\}\}\\n    \}",\
+        "output": "str",\
+        "x": 835,\
+        "y": 520,\
+        "wires": [\
+            [\
+                "afd4ac8c.8eace",\
+                "61efb5e8.05c04c"\
+            ]\
+        ]\
+    \},\
+    \{\
+        "id": "61efb5e8.05c04c",\
+        "type": "debug",\
+        "z": "187c8f88.3b5bc",\
+        "name": "TargetDoorStatus",\
+        "active": true,\
+        "tosidebar": true,\
+        "console": false,\
+        "tostatus": false,\
+        "complete": "payload",\
+        "x": 1086,\
+        "y": 545,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "ed241a63.942d08",\
+        "type": "mqtt out",\
+        "z": "187c8f88.3b5bc",\
+        "name": "",\
+        "topic": "homebridge/to/get",\
+        "qos": "",\
+        "retain": "",\
+        "broker": "8aabc5a0.0f60c",\
+        "x": 1081,\
+        "y": 315,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "7646559f.619afc",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 789.5,\
+        "y": 607,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "fe06e4e2.2c9ec8",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 113,\
+        "y": 105,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "fd96bc6b.bfca5",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 119,\
+        "y": 183,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "e6550cbb.a6898",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 110,\
+        "y": 369,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "d041f51a.33ead8",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 401,\
+        "y": 31,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "bba6fd9e.d82a9",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 801,\
+        "y": 440,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "fa29c819.f1b888",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "Change GDoor",\
+        "info": "",\
+        "x": 117,\
+        "y": 533,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "5a2ac403.eac8ac",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "0 = Open",\
+        "info": "",\
+        "x": 804,\
+        "y": 28,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "bd99d050.96b2c",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "1 = Closed",\
+        "info": "",\
+        "x": 804,\
+        "y": 63,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "afcae39e.e5a94",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "2 = Opening",\
+        "info": "",\
+        "x": 946,\
+        "y": 27,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "c7fae540.1b4bb8",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "3 = Closing",\
+        "info": "",\
+        "x": 945,\
+        "y": 63,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "c080351a.7428e8",\
+        "type": "comment",\
+        "z": "187c8f88.3b5bc",\
+        "name": "4 = Stopped",\
+        "info": "",\
+        "x": 1097,\
+        "y": 46,\
+        "wires": []\
+    \},\
+    \{\
+        "id": "8aabc5a0.0f60c",\
+        "type": "mqtt-broker",\
+        "z": "",\
+        "name": "HomeMQTT",\
+        "broker": \'93homemqtt.local\'94,\
+        "port": "1883",\
+        "clientid": "",\
+        "usetls": false,\
+        "compatmode": true,\
+        "keepalive": "60",\
+        "cleansession": true,\
+        "birthTopic": "",\
+        "birthQos": "0",\
+        "birthRetain": "false",\
+        "birthPayload": "",\
+        "closeTopic": "",\
+        "closeRetain": "false",\
+        "closePayload": "",\
+        "willTopic": "",\
+        "willQos": "0",\
+        "willRetain": "false",\
+        "willPayload": ""\
+    \}\
+]}
