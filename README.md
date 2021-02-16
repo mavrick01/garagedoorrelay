@@ -14,5 +14,3 @@ For the homebridge-mqtt,  I created the garagedoor node using the example in htt
 
 Note: I've named the node GarageDoor and send the LED messages on GarageLED. 
 
-This came originally from Dr ZZs's video 
-https://www.youtube.com/watch?v=QMepwpyjMCY&t=117s
